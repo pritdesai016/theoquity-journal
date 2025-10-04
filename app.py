@@ -54,6 +54,10 @@ menu = st.sidebar.radio(
         "Admin"
     ]
 )
+# --- Portfolio list (in-memory MVP) ---
+if "portfolios" not in st.session_state:
+    st.session_state.portfolios = ["Default Portfolio"]
+
 # ---------- Journal State & Helpers ----------
 def _init_journal_state():
     if "trades_df" not in st.session_state:
@@ -151,7 +155,7 @@ elif menu == "Journal":
         with colB:
             multiplier = st.number_input("Multiplier (Lot Size)", value=1.0, step=1.0,
                 help="For equities keep 1. For F&O use lot size (e.g., Nifty=50).")
-            status   = st.selectbox("Status", ["Planned","Open","Closed","Abandoned"])
+            status   = st.selectbox("Status", ["Planned","Unplanned","Open","Closed","Abandoned"])
             entry_dt = st.date_input("Entry Date", value=date.today())
             entry_tm = st.time_input("Entry Time", value=datetime.now().time())
             entry_strategy = st.text_input("Entry Strategy / Setup", placeholder="e.g., Pullback, Breakout")
@@ -295,6 +299,32 @@ elif menu == "Analysis":
 elif menu == "Config":
     st.title("⚙️ Configuration")
     st.write("Brokers, Labels, Strategies, Checklists, Templates, Risk.")
+
+    st.subheader("Portfolios")
+
+    # Add portfolio
+    new_portfolio = st.text_input("Add New Portfolio", placeholder="e.g., Client Name - Equity")
+    if st.button("➕ Add Portfolio"):
+        if new_portfolio:
+            if "portfolios" not in st.session_state:
+                st.session_state.portfolios = ["Default Portfolio"]
+            if new_portfolio not in st.session_state.portfolios:
+                st.session_state.portfolios.append(new_portfolio)
+                st.success(f"Portfolio '{new_portfolio}' added!")
+            else:
+                st.info(f"Portfolio '{new_portfolio}' already exists.")
+
+    # Remove portfolio (protect Default)
+    if "portfolios" in st.session_state and st.session_state.portfolios:
+        remove_choice = st.selectbox("Remove Portfolio", st.session_state.portfolios)
+        if st.button("🗑 Remove Portfolio"):
+            if remove_choice == "Default Portfolio":
+                st.warning("Default Portfolio cannot be removed.")
+            else:
+                st.session_state.portfolios.remove(remove_choice)
+                st.success(f"Portfolio '{remove_choice}' removed!")
+
+    st.caption("More config coming soon: Brokers, Labels, Strategies, Checklists, Templates, Risk.")
 
 elif menu == "Reports":
     st.title("📑 Reports")
